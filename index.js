@@ -3,9 +3,12 @@ require("dotenv").config();
 const express = require("express");
 const app = express();
 
-app.get("/", (req, res) => res.send("Bot is alive"));
+app.get("/", (req, res) => {
+  res.send("Bot is alive");
+});
 
 const PORT = process.env.PORT || 10000;
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Web server running on port ${PORT}`);
 });
@@ -47,6 +50,7 @@ function ensureDb() {
 
 function loadDb() {
   ensureDb();
+
   try {
     return JSON.parse(fs.readFileSync(DB_FILE, "utf8"));
   } catch {
@@ -121,6 +125,7 @@ const PRODUCTS = {
     { value: "ubisoft", label: "Ubisoft", logo: "" },
     { value: "minecraft", label: "Minecraft", logo: "" },
     { value: "world_of_tanks", label: "World of Tanks", logo: "" },
+    { value: "world_of_tanks_blitz", label: "World of Tanks Blitz", logo: "" },
     { value: "epic_games", label: "Epic Games", logo: "" },
     { value: "rockstar", label: "Rockstar", logo: "" },
   ],
@@ -220,7 +225,9 @@ client.once("ready", () => {
 async function createTicket(interaction, data) {
   const unique = Date.now().toString().slice(-6);
 
-  const channelName = `ticket-${sanitizeName(interaction.user.username)}-${sanitizeName(data.productValue)}-${unique}`;
+  const channelName = `ticket-${sanitizeName(
+    interaction.user.username
+  )}-${sanitizeName(data.productValue)}-${unique}`;
 
   const ticketChannel = await interaction.guild.channels.create({
     name: channelName,
@@ -252,13 +259,13 @@ async function createTicket(interaction, data) {
   });
 
   const orderEmbed = new EmbedBuilder()
-    .setTitle(`🎟️ Nowy ticket: ${data.productLabel}`)
-    .setColor(0x57f287)
+    .setTitle(`🧾 Zamówienie: ${data.productLabel}`)
+    .setColor(data.color || 0x57f287)
     .addFields(
       { name: "Użytkownik", value: `${interaction.user}`, inline: false },
       { name: "Produkt", value: data.productLabel, inline: true },
       { name: "Szczegóły", value: data.details || "Brak", inline: false },
-      { name: "Plan / Okres", value: data.amount || "Brak", inline: false },
+      { name: "Ilość / Plan / Okres", value: data.amount || "Brak", inline: false },
       { name: "Płatność", value: data.payment || "Brak", inline: false }
     )
     .setTimestamp();
@@ -267,7 +274,7 @@ async function createTicket(interaction, data) {
     .setTitle("👋 Witaj w tickecie")
     .setColor(0x5865f2)
     .setDescription(
-      `Cześć ${interaction.user},\n\nsupport wkrótce się odezwie. Możesz dopisać dodatkowe informacje.`
+      `Cześć ${interaction.user},\n\nSupport wkrótce się odezwie. Możesz dopisać dodatkowe informacje.`
     );
 
   const buttonsRow = new ActionRowBuilder().addComponents(
@@ -292,20 +299,22 @@ async function createTicket(interaction, data) {
     const log = interaction.guild.channels.cache.get(process.env.LOG_CHANNEL_ID);
 
     if (log) {
-      await log.send({
-        embeds: [
-          new EmbedBuilder()
-            .setTitle("🧾 Nowy ticket")
-            .setColor(0xfaa61a)
-            .addFields(
-              { name: "Kanał", value: `${ticketChannel}`, inline: false },
-              { name: "Użytkownik", value: `${interaction.user}`, inline: true },
-              { name: "Produkt", value: data.productLabel, inline: true },
-              { name: "Płatność", value: data.payment || "Brak", inline: true }
-            )
-            .setTimestamp(),
-        ],
-      }).catch(() => {});
+      await log
+        .send({
+          embeds: [
+            new EmbedBuilder()
+              .setTitle("🧾 Nowy ticket")
+              .setColor(data.color || 0xfaa61a)
+              .addFields(
+                { name: "Kanał", value: `${ticketChannel}`, inline: false },
+                { name: "Użytkownik", value: `${interaction.user}`, inline: true },
+                { name: "Produkt", value: data.productLabel, inline: true },
+                { name: "Płatność", value: data.payment || "Brak", inline: true }
+              )
+              .setTimestamp(),
+          ],
+        })
+        .catch(() => {});
     }
   }
 
@@ -339,32 +348,34 @@ client.on("interactionCreate", async (interaction) => {
 
       if (interaction.commandName === "valorant") {
         const embed = new EmbedBuilder()
-          .setTitle("🎮 Valorant — Oferta")
-          .setColor(0x5865f2)
+          .setTitle("🔴 Valorant Service — Powered by Nexa")
+          .setColor(0xff0000)
           .setDescription(`
-💰 **Ceny:**
-• 7 dni — 80 zł
-• 14 dni — 120 zł
-• 30 dni — 240 zł
-• Plan indywidualny — 699 zł
+💰 **CENNIK:**
+> • 7 dni — **80 zł**
+> • 14 dni — **120 zł**
+> • 30 dni — **240 zł**
+> • Plan indywidualny — **699 zł**
 
-━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━
 
-🖥️ **System:**
-➤ Windows 7 / 8 / 10 / 11  
-➤ Fullscreen / Windowed / Borderless  
+🖥️ **SYSTEM:**
+> Windows 7 / 8 / 10 / 11  
+> Fullscreen / Windowed / Borderless  
 
 ⚙️ **CPU:**
-➤ Intel / AMD  
+> Intel / AMD  
+
+━━━━━━━━━━━━━━━━━━
 
 📩 Kliknij przycisk poniżej, aby utworzyć ticket.
 `);
 
         const row = new ActionRowBuilder().addComponents(
           new ButtonBuilder()
-            .setCustomId("valorant_ticket")
-            .setLabel("🎟️ Utwórz ticket")
-            .setStyle(ButtonStyle.Primary)
+            .setCustomId("valorant_buy")
+            .setLabel("💰 KUP TERAZ")
+            .setStyle(ButtonStyle.Danger)
         );
 
         await interaction.reply({
@@ -453,7 +464,7 @@ client.on("interactionCreate", async (interaction) => {
         return;
       }
 
-      if (interaction.customId === "valorant_ticket") {
+      if (interaction.customId === "valorant_buy") {
         const db = loadDb();
 
         const existing = db.tickets.find(
@@ -474,10 +485,11 @@ client.on("interactionCreate", async (interaction) => {
 
         const ticketChannel = await createTicket(interaction, {
           productValue: "valorant",
-          productLabel: "Valorant",
-          details: "Oferta Valorant",
+          productLabel: "Valorant Service — Powered by Nexa",
+          details: "Klient kliknął KUP TERAZ",
           amount: "Do ustalenia",
           payment: "Do ustalenia",
+          color: 0xff0000,
         });
 
         await interaction.reply({
