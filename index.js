@@ -1,20 +1,18 @@
-require("dotenv").config(); // ПЕРВЫМ!
+require("dotenv").config();
 
 const express = require("express");
 const app = express();
 
-app.get("/", (req, res) => {
-  res.send("Bot is alive");
-});
+app.get("/", (req, res) => res.send("Bot is alive"));
 
 const PORT = process.env.PORT || 10000;
-
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Web server running on port ${PORT}`);
 });
 
 const fs = require("fs");
 const path = require("path");
+
 const {
   Client,
   GatewayIntentBits,
@@ -69,6 +67,7 @@ function addTicket(ticket) {
 function closeTicketInDb(channelId) {
   const db = loadDb();
   const ticket = db.tickets.find((t) => t.channelId === channelId);
+
   if (ticket) {
     ticket.closed = true;
     ticket.closedAt = new Date().toISOString();
@@ -114,30 +113,32 @@ const CATEGORY_OPTIONS = [
 
 const PRODUCTS = {
   games: [
-    { value: "steam", label: "Steam", logo: "https://cdn.discordapp.com/emojis/1496530193207267329.webp?size=40" },
-    { value: "fortnite", label: "Fortnite", logo: "https://cdn.discordapp.com/emojis/1496530448644571166.webp?size=40" },
-    { value: "roblox", label: "Roblox", logo: "https://cdn.discordapp.com/emojis/1496530793399451768.webp?size=40" },
-    { value: "riot_games", label: "Riot Games", logo: "https://cdn.discordapp.com/emojis/1496530944973344859.webp?size=40" },
-    { value: "ea", label: "EA", logo: "https://cdn.discordapp.com/emojis/1496531087386480650.webp?size=40" },
-    { value: "ubisoft", label: "Ubisoft", logo: "https://upload.wikimedia.org/wikipedia/commons/9/91/Ubisoft_logo.svg" },
-    { value: "minecraft", label: "Minecraft", logo: "https://cdn.discordapp.com/emojis/1496531206907498610.webp?size=40" },
-    { value: "world_of_tanks", label: "World of Tanks", logo: "https://cdn.discordapp.com/emojis/1496531334888292373.webp?size=40" },
-    { value: "world_of_tanks_blitz", label: "World of Tanks Blitz", logo: "https://cdn.discordapp.com/emojis/1496531631090045098.webp?size=40" },
-    { value: "epic_games", label: "Epic Games", logo: "https://cdn.discordapp.com/emojis/1496531783691276510.webp?size=40" },
-    { value: "rockstar", label: "Rockstar", logo: "https://cdn.discordapp.com/emojis/1496531896749002772.webp?size=40" },
+    { value: "steam", label: "Steam", logo: "" },
+    { value: "fortnite", label: "Fortnite", logo: "" },
+    { value: "roblox", label: "Roblox", logo: "" },
+    { value: "riot_games", label: "Riot Games", logo: "" },
+    { value: "ea", label: "EA", logo: "" },
+    { value: "ubisoft", label: "Ubisoft", logo: "" },
+    { value: "minecraft", label: "Minecraft", logo: "" },
+    { value: "world_of_tanks", label: "World of Tanks", logo: "" },
+    { value: "epic_games", label: "Epic Games", logo: "" },
+    { value: "rockstar", label: "Rockstar", logo: "" },
   ],
+
   social: [
-    { value: "discord", label: "Discord", logo: "https://upload.wikimedia.org/wikipedia/commons/9/98/Discord_logo.svg" },
-    { value: "tiktok", label: "TikTok", logo: "https://upload.wikimedia.org/wikipedia/en/0/09/TikTok_logo.svg" },
-    { value: "instagram", label: "Instagram", logo: "https://upload.wikimedia.org/wikipedia/commons/e/e7/Instagram_logo_2016.svg" },
-    { value: "telegram", label: "Telegram", logo: "https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" },
+    { value: "discord", label: "Discord", logo: "" },
+    { value: "tiktok", label: "TikTok", logo: "" },
+    { value: "instagram", label: "Instagram", logo: "" },
+    { value: "telegram", label: "Telegram", logo: "" },
   ],
+
   tools: [
-    { value: "exitlag", label: "ExitLag", logo: "https://www.exitlag.com/img/Logo.png" },
-    { value: "chatgpt", label: "ChatGPT", logo: "https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg" },
-    { value: "vpn", label: "VPN", logo: "https://upload.wikimedia.org/wikipedia/commons/9/9e/VPN_Logo.svg" },
-    { value: "gift_card", label: "Gift Card", logo: "https://upload.wikimedia.org/wikipedia/commons/4/46/Gift_card_icon.svg" },
+    { value: "exitlag", label: "ExitLag", logo: "" },
+    { value: "chatgpt", label: "ChatGPT", logo: "" },
+    { value: "vpn", label: "VPN", logo: "" },
+    { value: "gift_card", label: "Gift Card", logo: "" },
   ],
+
   other: [
     { value: "custom", label: "Inny produkt", logo: "" },
   ],
@@ -161,6 +162,7 @@ function getCategoryMenuRow() {
 
 function getProductMenuRow(category) {
   const products = PRODUCTS[category] || [];
+
   return new ActionRowBuilder().addComponents(
     new StringSelectMenuBuilder()
       .setCustomId(`product_select:${category}`)
@@ -190,13 +192,21 @@ const commands = [
     .setName("panel")
     .setDescription("Wyślij panel zamówień")
     .toJSON(),
+
+  new SlashCommandBuilder()
+    .setName("valorant")
+    .setDescription("Wyślij panel Valorant")
+    .toJSON(),
 ];
 
 async function registerCommands() {
   const rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
 
   await rest.put(
-    Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID),
+    Routes.applicationGuildCommands(
+      process.env.CLIENT_ID,
+      process.env.GUILD_ID
+    ),
     { body: commands }
   );
 
@@ -207,6 +217,114 @@ client.once("ready", () => {
   console.log(`✅ Zalogowano jako ${client.user.tag}`);
 });
 
+async function createTicket(interaction, data) {
+  const unique = Date.now().toString().slice(-6);
+
+  const channelName = `ticket-${sanitizeName(interaction.user.username)}-${sanitizeName(data.productValue)}-${unique}`;
+
+  const ticketChannel = await interaction.guild.channels.create({
+    name: channelName,
+    type: ChannelType.GuildText,
+    parent: process.env.TICKET_CATEGORY_ID,
+    permissionOverwrites: [
+      {
+        id: interaction.guild.id,
+        deny: [PermissionFlagsBits.ViewChannel],
+      },
+      {
+        id: interaction.user.id,
+        allow: [
+          PermissionFlagsBits.ViewChannel,
+          PermissionFlagsBits.SendMessages,
+          PermissionFlagsBits.ReadMessageHistory,
+        ],
+      },
+      {
+        id: process.env.SUPPORT_ROLE_ID,
+        allow: [
+          PermissionFlagsBits.ViewChannel,
+          PermissionFlagsBits.SendMessages,
+          PermissionFlagsBits.ReadMessageHistory,
+          PermissionFlagsBits.ManageChannels,
+        ],
+      },
+    ],
+  });
+
+  const orderEmbed = new EmbedBuilder()
+    .setTitle(`🎟️ Nowy ticket: ${data.productLabel}`)
+    .setColor(0x57f287)
+    .addFields(
+      { name: "Użytkownik", value: `${interaction.user}`, inline: false },
+      { name: "Produkt", value: data.productLabel, inline: true },
+      { name: "Szczegóły", value: data.details || "Brak", inline: false },
+      { name: "Plan / Okres", value: data.amount || "Brak", inline: false },
+      { name: "Płatność", value: data.payment || "Brak", inline: false }
+    )
+    .setTimestamp();
+
+  const infoEmbed = new EmbedBuilder()
+    .setTitle("👋 Witaj w tickecie")
+    .setColor(0x5865f2)
+    .setDescription(
+      `Cześć ${interaction.user},\n\nsupport wkrótce się odezwie. Możesz dopisać dodatkowe informacje.`
+    );
+
+  const buttonsRow = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId("claim_ticket")
+      .setLabel("Claim ticket")
+      .setStyle(ButtonStyle.Primary),
+
+    new ButtonBuilder()
+      .setCustomId("close_ticket")
+      .setLabel("Zamknij ticket")
+      .setStyle(ButtonStyle.Danger)
+  );
+
+  await ticketChannel.send({
+    content: `${interaction.user} <@&${process.env.SUPPORT_ROLE_ID}>`,
+    embeds: [orderEmbed, infoEmbed],
+    components: [buttonsRow],
+  });
+
+  if (process.env.LOG_CHANNEL_ID) {
+    const log = interaction.guild.channels.cache.get(process.env.LOG_CHANNEL_ID);
+
+    if (log) {
+      await log.send({
+        embeds: [
+          new EmbedBuilder()
+            .setTitle("🧾 Nowy ticket")
+            .setColor(0xfaa61a)
+            .addFields(
+              { name: "Kanał", value: `${ticketChannel}`, inline: false },
+              { name: "Użytkownik", value: `${interaction.user}`, inline: true },
+              { name: "Produkt", value: data.productLabel, inline: true },
+              { name: "Płatność", value: data.payment || "Brak", inline: true }
+            )
+            .setTimestamp(),
+        ],
+      }).catch(() => {});
+    }
+  }
+
+  addTicket({
+    channelId: ticketChannel.id,
+    userId: interaction.user.id,
+    username: interaction.user.tag,
+    product: data.productValue,
+    productLabel: data.productLabel,
+    details: data.details || "",
+    amount: data.amount || "",
+    payment: data.payment || "",
+    closed: false,
+    createdAt: new Date().toISOString(),
+  });
+
+  return ticketChannel;
+}
+
 client.on("interactionCreate", async (interaction) => {
   try {
     if (interaction.isChatInputCommand()) {
@@ -214,10 +332,48 @@ client.on("interactionCreate", async (interaction) => {
         await interaction.reply({
           content: "Wybierz kategorię:",
           components: [getCategoryMenuRow()],
-          
         });
+
+        return;
       }
-      return;
+
+      if (interaction.commandName === "valorant") {
+        const embed = new EmbedBuilder()
+          .setTitle("🎮 Valorant — Oferta")
+          .setColor(0x5865f2)
+          .setDescription(`
+💰 **Ceny:**
+• 7 dni — 80 zł
+• 14 dni — 120 zł
+• 30 dni — 240 zł
+• Plan indywidualny — 699 zł
+
+━━━━━━━━━━━━━━━━━━━━
+
+🖥️ **System:**
+➤ Windows 7 / 8 / 10 / 11  
+➤ Fullscreen / Windowed / Borderless  
+
+⚙️ **CPU:**
+➤ Intel / AMD  
+
+📩 Kliknij przycisk poniżej, aby utworzyć ticket.
+`);
+
+        const row = new ActionRowBuilder().addComponents(
+          new ButtonBuilder()
+            .setCustomId("valorant_ticket")
+            .setLabel("🎟️ Utwórz ticket")
+            .setStyle(ButtonStyle.Primary)
+        );
+
+        await interaction.reply({
+          embeds: [embed],
+          components: [row],
+        });
+
+        return;
+      }
     }
 
     if (interaction.isStringSelectMenu()) {
@@ -229,19 +385,24 @@ client.on("interactionCreate", async (interaction) => {
           embeds: [],
           components: [getProductMenuRow(category), getBackButtonRow()],
         });
+
         return;
       }
 
       if (interaction.customId.startsWith("product_select:")) {
         const category = interaction.customId.split(":")[1];
         const productValue = interaction.values[0];
-        const product = (PRODUCTS[category] || []).find((p) => p.value === productValue);
+
+        const product = (PRODUCTS[category] || []).find(
+          (p) => p.value === productValue
+        );
 
         if (!product) {
           await interaction.reply({
             content: "❌ Nie znaleziono produktu.",
             ephemeral: true,
           });
+
           return;
         }
 
@@ -288,6 +449,42 @@ client.on("interactionCreate", async (interaction) => {
           embeds: [],
           components: [getCategoryMenuRow()],
         });
+
+        return;
+      }
+
+      if (interaction.customId === "valorant_ticket") {
+        const db = loadDb();
+
+        const existing = db.tickets.find(
+          (t) =>
+            t.userId === interaction.user.id &&
+            t.product === "valorant" &&
+            !t.closed
+        );
+
+        if (existing) {
+          await interaction.reply({
+            content: "❌ Masz już otwarty ticket Valorant.",
+            ephemeral: true,
+          });
+
+          return;
+        }
+
+        const ticketChannel = await createTicket(interaction, {
+          productValue: "valorant",
+          productLabel: "Valorant",
+          details: "Oferta Valorant",
+          amount: "Do ustalenia",
+          payment: "Do ustalenia",
+        });
+
+        await interaction.reply({
+          content: `✅ Ticket utworzony: ${ticketChannel}`,
+          ephemeral: true,
+        });
+
         return;
       }
 
@@ -295,6 +492,7 @@ client.on("interactionCreate", async (interaction) => {
         await interaction.reply({
           content: `📌 Ticket przejął ${interaction.user}`,
         });
+
         return;
       }
 
@@ -323,13 +521,17 @@ client.on("interactionCreate", async (interaction) => {
       if (!interaction.customId.startsWith("ticket_modal:")) return;
 
       const [, category, productValue] = interaction.customId.split(":");
-      const product = (PRODUCTS[category] || []).find((p) => p.value === productValue);
+
+      const product = (PRODUCTS[category] || []).find(
+        (p) => p.value === productValue
+      );
 
       if (!product) {
         await interaction.reply({
           content: "❌ Produkt nie istnieje.",
           ephemeral: true,
         });
+
         return;
       }
 
@@ -338,8 +540,12 @@ client.on("interactionCreate", async (interaction) => {
       const payment = interaction.fields.getTextInputValue("payment");
 
       const db = loadDb();
+
       const existing = db.tickets.find(
-        (t) => t.userId === interaction.user.id && t.product === productValue && !t.closed
+        (t) =>
+          t.userId === interaction.user.id &&
+          t.product === productValue &&
+          !t.closed
       );
 
       if (existing) {
@@ -347,115 +553,24 @@ client.on("interactionCreate", async (interaction) => {
           content: "❌ Masz już otwarty ticket na ten produkt.",
           ephemeral: true,
         });
+
         return;
       }
 
-      const unique = Date.now().toString().slice(-6);
-      const channelName = `ticket-${sanitizeName(interaction.user.username)}-${sanitizeName(product.value)}-${unique}`;
-
-      const ticketChannel = await interaction.guild.channels.create({
-        name: channelName,
-        type: ChannelType.GuildText,
-        parent: process.env.TICKET_CATEGORY_ID,
-        permissionOverwrites: [
-          {
-            id: interaction.guild.id,
-            deny: [PermissionFlagsBits.ViewChannel],
-          },
-          {
-            id: interaction.user.id,
-            allow: [
-              PermissionFlagsBits.ViewChannel,
-              PermissionFlagsBits.SendMessages,
-              PermissionFlagsBits.ReadMessageHistory,
-            ],
-          },
-          {
-            id: process.env.SUPPORT_ROLE_ID,
-            allow: [
-              PermissionFlagsBits.ViewChannel,
-              PermissionFlagsBits.SendMessages,
-              PermissionFlagsBits.ReadMessageHistory,
-              PermissionFlagsBits.ManageChannels,
-            ],
-          },
-        ],
-      });
-
-      const orderEmbed = new EmbedBuilder()
-        .setTitle(`Wybrałeś: ${product.label}`)
-        .setThumbnail(product.logo || null)
-        .setColor(0x57f287)
-        .addFields(
-          { name: "Użytkownik", value: `${interaction.user}`, inline: false },
-          { name: "Produkt", value: product.label, inline: true },
-          { name: "Szczegóły", value: details, inline: false },
-          { name: "Ilość / Plan / Okres", value: amount, inline: false },
-          { name: "Płatność", value: payment, inline: false }
-        )
-        .setTimestamp();
-
-      const infoEmbed = new EmbedBuilder()
-        .setTitle("👋 Witaj w tickecie")
-        .setColor(0x5865f2)
-        .setDescription(
-          `Cześć ${interaction.user},\n\nsupport wkrótce się odezwie.\nJeśli chcesz, możesz dopisać dodatkowe informacje.`
-        );
-
-      const buttonsRow = new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
-          .setCustomId("claim_ticket")
-          .setLabel("Claim ticket")
-          .setStyle(ButtonStyle.Primary),
-        new ButtonBuilder()
-          .setCustomId("close_ticket")
-          .setLabel("Zamknij ticket")
-          .setStyle(ButtonStyle.Danger)
-      );
-
-      await ticketChannel.send({
-        content: `${interaction.user} <@&${process.env.SUPPORT_ROLE_ID}>`,
-        embeds: [orderEmbed, infoEmbed],
-        components: [buttonsRow],
-      });
-
-      if (process.env.LOG_CHANNEL_ID) {
-        const log = interaction.guild.channels.cache.get(process.env.LOG_CHANNEL_ID);
-        if (log) {
-          await log.send({
-            embeds: [
-              new EmbedBuilder()
-                .setTitle("🧾 Nowy ticket")
-                .setColor(0xfaa61a)
-                .addFields(
-                  { name: "Kanał", value: `${ticketChannel}`, inline: false },
-                  { name: "Użytkownik", value: `${interaction.user}`, inline: true },
-                  { name: "Produkt", value: product.label, inline: true },
-                  { name: "Płatność", value: payment, inline: true }
-                )
-                .setTimestamp(),
-            ],
-          }).catch(() => {});
-        }
-      }
-
-      addTicket({
-        channelId: ticketChannel.id,
-        userId: interaction.user.id,
-        username: interaction.user.tag,
-        product: productValue,
+      const ticketChannel = await createTicket(interaction, {
+        productValue,
         productLabel: product.label,
         details,
         amount,
         payment,
-        closed: false,
-        createdAt: new Date().toISOString(),
       });
 
       await interaction.reply({
         content: `✅ Ticket utworzony: ${ticketChannel}`,
         ephemeral: true,
       });
+
+      return;
     }
   } catch (error) {
     console.error(error);
