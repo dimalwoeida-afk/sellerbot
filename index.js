@@ -183,14 +183,17 @@ function getProductMenuRow(category) {
   );
 }
 
+// ===================== РЕДАКТИРОВАННАЯ ФУНКЦИЯ =====================
 function getBackButtonRow() {
   return new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId("back_to_categories")
-      .setLabel("← Wróć")
-      .setStyle(ButtonStyle.Secondary)
+      .setLabel("🔴 ← Wróć do kategorii") // длинный label + эмодзи
+      .setStyle(ButtonStyle.Danger) // красная кнопка
+      .setEmoji("🔴") // визуальный акцент
   );
 }
+// =================================================================
 
 const commands = [
   new SlashCommandBuilder()
